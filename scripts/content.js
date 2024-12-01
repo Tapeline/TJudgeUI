@@ -71,8 +71,9 @@ async function createProblemSidenav() {
     listComponent.append($(`<li class="divider"></li>`));
     $(`#main-menu ul`).children("li").each((i, item) => {
         let elem = $(item).children("div").eq(0).html();
+        if (elem.includes("Итог")) return;
         if (!elem.startsWith("<"))
-            elem = `<a>${elem}</a>`;
+            elem = `<a class="menu" href="#">${elem}</a>`;
         listComponent.append($(`<li>${elem}</li>`));
     });
     return listComponent;
@@ -327,6 +328,74 @@ function replaceLoginPage() {
     $("#l13").remove();
 }
 
+function createAllSubmissions() {
+    const table = $(`<table class="tj-styled-table"></table>`);
+    table.append(`<thead><tr>
+        <td>Номер решения</td>
+        <td>Время</td>
+        <td>Размер</td>
+        <td>Задача</td>
+        <td>Язык</td>
+        <td>Результат</td>
+        <td>Ошибка на тесте</td>
+        <td>Посмотреть исходный текст</td>
+        <td>Просмотреть протокол</td>
+    </tr></thead>`);
+    $("#probNavTaskArea-ins table tbody").children("tr").each((i, item) => {
+        const tr = $(`<tr></tr>`);
+        $(item).children("td").each((j, cell) => {
+            tr.append(`<td>${$(cell).html()}</td>`)
+        });
+        table.append(tr);
+    })
+    const card = $(`<div class="card" style="padding: 16px; overflow-x: scroll; width: 100%"></div>`);
+    card.append(`<h2>Посылки</h2>`);
+    const urlParams = new URLSearchParams(window.location.search);
+    const allRuns = urlParams.get('all_runs');
+    if (allRuns == "1")
+        card.append(`<a href="${window.location.href.replace('all_runs=1', 'all_runs=0')}">
+            Посмотреть только последние 15 посылок</a>`);
+    else {
+        let newLoc = window.location.href.replace("all_runs=0", "all_runs=1");
+        if (!newLoc.includes("all_runs"))
+            newLoc += "&all_runs=1";
+        card.append(`<a href="${newLoc}">
+            Посмотреть все послыки (сейчас показаны последние 15)</a>`);
+    }
+    card.append(table);
+    return card;
+}
+
+async function createAllSubmissionsPage() {
+    const row = $("<div></div>");
+
+    const col1 = $("<div></div>");
+    col1.append(await createProblemSidenav());
+
+    const col2 = $("<div class='content-after-sidenav'></div>");
+
+    col2.append(createAllSubmissions());
+
+    row.append(col1);
+    row.append(col2);
+    return row;
+}
+
+function replaceAllSubmissionsPage() {
+    $("head").append(`
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    `);
+    createAllSubmissionsPage().then(content => {
+        $(".probNav").remove();
+        $("#l12-col").remove();
+        $("#l11").remove();
+        $("#l13").remove();
+        $("#main-cont").append(content);
+        $('.tabs').tabs();
+        $('.collapsible').collapsible();
+    });
+}
+
 $(document).ready(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const action = urlParams.get('action');
@@ -334,6 +403,8 @@ $(document).ready(() => {
         replaceContestTaskPage();
     else if (action == "2")
         replaceContestInfoPage();
+    else if (action == "140")
+        replaceAllSubmissionsPage();
     else if (action === undefined || action === null)
         replaceLoginPage();
 
