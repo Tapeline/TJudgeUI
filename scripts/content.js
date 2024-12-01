@@ -735,6 +735,7 @@ $(document).ready(() => {
     $("body").removeClass("hidden");
     const urlParams = new URLSearchParams(window.location.search);
     const action = urlParams.get('action');
+    const contest_id = urlParams.get('contest_id');
     if (action == "139")
         replaceContestTaskPage();
     else if (action == "2")
@@ -751,7 +752,8 @@ $(document).ready(() => {
         replaceProtocolPage();
     else if (action == "36")
         replaceSubmissionSourcePage();
-    else if (action === undefined || action === null)
+    else if ((action === undefined || action === null) &&
+        (contest_id !== undefined && contest_id !== null))
         replaceLoginPage();
     hidePreloader();
 })

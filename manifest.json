@@ -4,7 +4,7 @@
   "description": "Enhance ejudge.algocourses.ru UI",
   "version": "1.0",
   "action": {
-    "default_popup": "hello.html",
+    "default_popup": "info.html",
     "default_icon": "icon.png"
   },
   "permissions": ["storage", "activeTab", "declarativeContent"],
