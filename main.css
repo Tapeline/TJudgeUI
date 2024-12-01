@@ -121,3 +121,17 @@ pre {
 .tj-compiler-options .collapsible-body {
     padding: 0 16px;
 }
+
+.big-f-preloader {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    background: white;
+}
+
+td.tj-standings-score {
+    font-weight: bold;
+}

@@ -221,6 +221,7 @@ function replaceContestTaskPage() {
             lineNumbers: true,
             mode: "text/x-c++src"
         });
+        hidePreloader();
     });
 }
 
@@ -286,6 +287,7 @@ function replaceContestInfoPage() {
         $("#main-cont").append(content);
         $('.tabs').tabs();
         $('.collapsible').collapsible();
+        hidePreloader();
     });
 }
 
@@ -326,6 +328,7 @@ function replaceLoginPage() {
     $("#l12-col").remove();
     $("#l11").remove();
     $("#l13").remove();
+    hidePreloader();
 }
 
 function createAllSubmissions() {
@@ -393,10 +396,126 @@ function replaceAllSubmissionsPage() {
         $("#main-cont").append(content);
         $('.tabs').tabs();
         $('.collapsible').collapsible();
+        hidePreloader();
     });
 }
 
+function createStandings() {
+    const table = $(`<table class="tj-styled-table tj-standings"></table>`);
+    let headerRow = $(`<tr></tr>`);
+    const tbody = $(".standings tbody");
+    let problemCount = 0;
+    tbody.children("tr").eq(0).children("th").each((i, item) => {
+        headerRow.append($(`<td>${$(item).text()}</td>`));
+        problemCount++;
+    });
+    headerRow = $(`<thead></thead>`).append(headerRow);
+    table.append(headerRow);
+    tbody.children("tr").each((i, item) => {
+        const tr = $(`<tr></tr>`);
+        $(item).children("td").each((j, cell) => {
+            if (j < 2 || j >= 2 + problemCount) {
+                tr.append(`<td>${$(cell).html()}</td>`);
+                return;
+            }
+            let cellClass = "tj-standings-score ";
+            if ($(cell).html().includes("+")) cellClass += "green-text lighten-1";
+            else if ($(cell).html().includes("-")) cellClass += "red-text accent-2";
+            tr.append(`<td class="${cellClass}">${$(cell).html()}</td>`)
+        });
+        table.append(tr);
+    })
+    const card = $(`<div class="card" style="padding: 16px; overflow-x: scroll; width: 100%"></div>`);
+    card.append(`<h2>Положение участников</h2>`);
+    card.append(table);
+    return card;
+}
+
+async function createStandingsPage() {
+    const row = $("<div></div>");
+
+    const col1 = $("<div></div>");
+    col1.append(await createProblemSidenav());
+
+    const col2 = $("<div class='content-after-sidenav'></div>");
+
+    col2.append(createStandings());
+
+    row.append(col1);
+    row.append(col2);
+    return row;
+}
+
+function replaceStandingsPage() {
+    $("head").append(`
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    `);
+    createStandingsPage().then(content => {
+        $(".probNav").remove();
+        $("#l12-col").remove();
+        $("#l11").remove();
+        $("#l13").remove();
+        $("#main-cont").append(content);
+        hidePreloader();
+    });
+}
+
+function hidePreloader() {
+    $(".big-f-preloader").remove();
+}
+
+function showPreloader() {
+    $("body").append(`<div class="big-f-preloader center-content-on-page">
+<div class="preloader-wrapper big active">
+      <div class="spinner-layer spinner-blue">
+        <div class="circle-clipper left">
+          <div class="circle"></div>
+        </div><div class="gap-patch">
+          <div class="circle"></div>
+        </div><div class="circle-clipper right">
+          <div class="circle"></div>
+        </div>
+      </div>
+
+      <div class="spinner-layer spinner-red">
+        <div class="circle-clipper left">
+          <div class="circle"></div>
+        </div><div class="gap-patch">
+          <div class="circle"></div>
+        </div><div class="circle-clipper right">
+          <div class="circle"></div>
+        </div>
+      </div>
+
+      <div class="spinner-layer spinner-yellow">
+        <div class="circle-clipper left">
+          <div class="circle"></div>
+        </div><div class="gap-patch">
+          <div class="circle"></div>
+        </div><div class="circle-clipper right">
+          <div class="circle"></div>
+        </div>
+      </div>
+
+      <div class="spinner-layer spinner-green">
+        <div class="circle-clipper left">
+          <div class="circle"></div>
+        </div><div class="gap-patch">
+          <div class="circle"></div>
+        </div><div class="circle-clipper right">
+          <div class="circle"></div>
+        </div>
+      </div>
+    </div>
+</div>`)
+}
+
+$("body").addClass("hidden");
+
 $(document).ready(() => {
+    $("body").addClass("hidden");
+    showPreloader();
+    $("body").removeClass("hidden");
     const urlParams = new URLSearchParams(window.location.search);
     const action = urlParams.get('action');
     if (action == "139")
@@ -405,7 +524,9 @@ $(document).ready(() => {
         replaceContestInfoPage();
     else if (action == "140")
         replaceAllSubmissionsPage();
+    else if (action == "94")
+        replaceStandingsPage();
     else if (action === undefined || action === null)
         replaceLoginPage();
-
+    hidePreloader();
 })
