@@ -71,7 +71,7 @@ async function createProblemSidenav() {
     listComponent.append($(`<li class="divider"></li>`));
     $(`#main-menu ul`).children("li").each((i, item) => {
         let elem = $(item).children("div").eq(0).html();
-        if (elem.includes("Итог")) return;
+        if (elem.includes("Итог") || elem.includes("Настройки")) return;
         if (!elem.startsWith("<"))
             elem = `<a class="menu" href="#">${elem}</a>`;
         listComponent.append($(`<li>${elem}</li>`));
@@ -460,6 +460,136 @@ function replaceStandingsPage() {
     });
 }
 
+function createMessages() {
+    const table = $(`<table class="tj-styled-table"></table>`);
+    table.append(`<thead><tr>
+        <td>Номер сообщения</td>
+        <td>Флаги</td>
+        <td>Время</td>
+        <td>Размер</td>
+        <td>От</td>
+        <td>Кому</td>
+        <td>Тема</td>
+        <td>Просмотр</td>
+    </tr></thead>`);
+    $("#probNavTaskArea-ins table tbody").children("tr").each((i, item) => {
+        const tr = $(`<tr></tr>`);
+        $(item).children("td").each((j, cell) => {
+            tr.append(`<td>${$(cell).html()}</td>`)
+        });
+        table.append(tr);
+    })
+    const card = $(`<div class="card" style="padding: 16px; overflow-x: scroll; width: 100%"></div>`);
+    card.append(`<h2>Сообщения</h2>`);
+    const urlParams = new URLSearchParams(window.location.search);
+    const allClars = urlParams.get('all_clars');
+    if (allClars == "1")
+        card.append(`<a href="${window.location.href.replace('all_clars=1', 'all_clars=0')}">
+            Посмотреть только последние 15 сообщений</a>`);
+    else {
+        let newLoc = window.location.href.replace("all_clars=0", "all_clars=1");
+        if (!newLoc.includes("all_clars"))
+            newLoc += "&all_clars=1";
+        card.append(`<a href="${newLoc}">
+            Посмотреть все сообщения (сейчас показаны последние 15)</a>`);
+    }
+    card.append(table);
+    return card;
+}
+
+async function createMessagesPage() {
+    const row = $("<div></div>");
+
+    const col1 = $("<div></div>");
+    col1.append(await createProblemSidenav());
+
+    const col2 = $("<div class='content-after-sidenav'></div>");
+
+    col2.append(createMessages());
+
+    row.append(col1);
+    row.append(col2);
+    return row;
+}
+
+function replaceMessagesPage() {
+    $("head").append(`
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    `);
+    createMessagesPage().then(content => {
+        $(".probNav").remove();
+        $("#l12-col").remove();
+        $("#l11").remove();
+        $("#l13").remove();
+        $("#main-cont").append(content);
+        hidePreloader();
+    });
+}
+
+function createSendMessageForm() {
+    const SID = $("input[name='SID']").val();
+    return $(`<div class="card tj-send-msg" style="padding: 16px; overflow-x: scroll; width: 100%">
+        <form method="post" enctype="application/x-www-form-urlencoded" 
+            action="https://ejudge.algocourses.ru/cgi-bin/new-client">
+            <h2>Отправить сообщение судьям</h2>
+            <input type="hidden" name="SID" value="${SID}">
+            <div class="row" style="margin: 0">
+                <div class="input-field col s3">
+                    <select name="prob_id">
+                        ${$("select[name='prob_id']").html()}
+                    </select>
+                    <label>Задача</label>
+                </div>
+                <div class="input-field col s9">
+                    <input id="topic" type="text" name="subject">
+                    <label for="topic">Тема сообщения</label>
+                </div>
+            </div>
+            <div class="row" style="margin: 0">
+                <div class="input-field col s12">
+                    <textarea id="textarea1" name="text" class="materialize-textarea" rows="30"></textarea>
+                    <label for="textarea1">Текст сообщения</label>
+                </div>
+            </div>
+            <div class="row" style="margin: 0">
+                <input class="btn col s12" type="submit" name="action_41" value="Отправить"/>
+            </div>
+            
+        </form>
+    </div>`);
+}
+
+async function createSendMessagePage() {
+    const row = $("<div></div>");
+
+    const col1 = $("<div></div>");
+    col1.append(await createProblemSidenav());
+
+    const col2 = $("<div class='content-after-sidenav'></div>");
+
+    col2.append(createSendMessageForm());
+
+    row.append(col1);
+    row.append(col2);
+    return row;
+}
+
+function replaceSendMessagePage() {
+    $("head").append(`
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    `);
+    createSendMessagePage().then(content => {
+        $(".probNav").remove();
+        $("#l12-col").remove();
+        $("#l11").remove();
+        $("#l13").remove();
+        $("#main-cont").append(content);
+        $('select').formSelect();
+        hidePreloader();
+    });
+}
+
+
 function hidePreloader() {
     $(".big-f-preloader").remove();
 }
@@ -526,6 +656,10 @@ $(document).ready(() => {
         replaceAllSubmissionsPage();
     else if (action == "94")
         replaceStandingsPage();
+    else if (action == "142")
+        replaceMessagesPage();
+    else if (action == "141")
+        replaceSendMessagePage();
     else if (action === undefined || action === null)
         replaceLoginPage();
     hidePreloader();

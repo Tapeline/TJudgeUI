@@ -20,6 +20,7 @@ body, #main-cont {
 .content-after-sidenav {
     margin-left: 300px;
     padding: 3rem;
+    min-height: 100vh;
 }
 
 .problem-sidenav li a {
@@ -134,4 +135,17 @@ pre {
 
 td.tj-standings-score {
     font-weight: bold;
+}
+
+.tj-send-msg h2 {
+    margin-bottom: 32px;
+}
+
+.tj-send-msg textarea {
+    min-height: 220px;
+}
+
+.dropdown-content {
+    overflow-y: scroll;
+    height: 300px!important;
 }
