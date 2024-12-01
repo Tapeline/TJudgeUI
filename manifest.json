@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "T-Judge",
+  "description": "Enhance ejudge.algocourses.ru UI",
+  "version": "1.0",
+  "action": {
+    "default_popup": "hello.html",
+    "default_icon": "icon.png"
+  },
+  "permissions": ["storage", "activeTab", "declarativeContent"],
+  "content_scripts": [
+    {
+      "js": ["lib/jquery.js", "lib/codemirror.min.js", "lib/mode/clike.js",
+        "scripts/content.js", "lib/materialize.min.js"],
+      "css": ["lib/materialize.min.css", "main.css", "lib/codemirror.min.css"],
+      "matches": [
+        "https://ejudge.algocourses.ru/*"
+      ]
+    }
+  ]
+}
