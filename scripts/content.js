@@ -589,6 +589,93 @@ function replaceSendMessagePage() {
     });
 }
 
+function createProtocol() {
+    const table = $(`<table class="tj-styled-table"></table>`);
+    table.append(`<thead><tr>
+        <td>Номер теста</td>
+        <td>Результат</td>
+        <td>Время (с)</td>
+        <td>Память (RSS KiB)</td>
+    </tr></thead>`);
+    $(".l14 table tbody").children("tr").each((i, item) => {
+        const tr = $(`<tr></tr>`);
+        $(item).children("td").each((j, cell) => {
+            tr.append(`<td>${$(cell).html()}</td>`)
+        });
+        table.append(tr);
+    })
+    const card = $(`<div class="card" style="padding: 16px; overflow-x: scroll; width: 100%"></div>`);
+    card.append(`<h2>Протокол тестирования</h2>`);
+    card.append($(".l14").children("h2").eq(0));
+    card.append($(".l14").children("big").eq(0));
+    card.append(table);
+    return card;
+}
+
+async function createProtocolPage() {
+    const row = $("<div></div>");
+
+    const col1 = $("<div></div>");
+    col1.append(await createProblemSidenav());
+
+    const col2 = $("<div class='content-after-sidenav'></div>");
+
+    col2.append(createProtocol());
+
+    row.append(col1);
+    row.append(col2);
+    return row;
+}
+
+function replaceProtocolPage() {
+    $("head").append(`
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    `);
+    createProtocolPage().then(content => {
+        $(".probNav").remove();
+        $("#l12-col").remove();
+        $("#l11").remove();
+        $("#l13").remove();
+        $("#main-cont").append(content);
+        hidePreloader();
+    });
+}
+
+function createSubmissionSource() {
+    const card = $(`<div class="card" style="padding: 16px; overflow-x: scroll; width: 100%"></div>`);
+    card.append(`<h2>Исходный код решения</h2>`);
+    card.append($(".l14").children("pre").eq(0));
+    return card;
+}
+
+async function createSubmissionSourcePage() {
+    const row = $("<div></div>");
+
+    const col1 = $("<div></div>");
+    col1.append(await createProblemSidenav());
+
+    const col2 = $("<div class='content-after-sidenav'></div>");
+
+    col2.append(createSubmissionSource());
+
+    row.append(col1);
+    row.append(col2);
+    return row;
+}
+
+function replaceSubmissionSourcePage() {
+    $("head").append(`
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    `);
+    createSubmissionSourcePage().then(content => {
+        $(".probNav").remove();
+        $("#l12-col").remove();
+        $("#l11").remove();
+        $("#l13").remove();
+        $("#main-cont").append(content);
+        hidePreloader();
+    });
+}
 
 function hidePreloader() {
     $(".big-f-preloader").remove();
@@ -660,6 +747,10 @@ $(document).ready(() => {
         replaceMessagesPage();
     else if (action == "141")
         replaceSendMessagePage();
+    else if (action == "37")
+        replaceProtocolPage();
+    else if (action == "36")
+        replaceSubmissionSourcePage();
     else if (action === undefined || action === null)
         replaceLoginPage();
     hidePreloader();
