@@ -81,6 +81,7 @@ async function createProblemSidenav() {
 
 function getProblemStatement() {
     let statement = $("<div class='tj-statement'></div>"), constraints, examples = $("<div></div>"), submit;
+    let annotations = $(`<div></div>`);
     let current = "constraints";
     $("#probNavTaskArea-ins").children().each((i, item) => {
         if (current === "skip") return;
@@ -90,6 +91,12 @@ function getProblemStatement() {
         }
         if (current === "statement" && $(item).text() === "Примеры")
             current = "examples";
+        if (current === "examples" && (
+            $(item).text().toString().toLowerCase().includes("примечания") ||
+                $(item).text().toString().toLowerCase().includes("пояснения")
+        ) && $(item).prop("tagName")[0] === "H")
+            current = "annotations";
+
         if ($(item).hasClass("ui-tabs")) {
             current = "skip"
             submit = item;
@@ -100,21 +107,29 @@ function getProblemStatement() {
             statement.append($(item));
         if (current === "examples")
             examples.append($(item));
+        if (current === "annotations")
+            annotations.append($(item));
     })
     return {
         statement: statement,
         constraints: constraints,
         examples: examples,
-        submit: submit
+        submit: submit,
+        annotations: annotations
     }
 }
 
 
 function createSubmitArea() {
-    const displayLanguage = "C++";
+    const hasSelect = $(`select[name="lang_id"]`).length > 0;
+    const displayLanguage = hasSelect? "Выбрать язык" : "C++";
     const SID = $(`#ej-submit-tabs input[name="SID"]`).val();
     const prob_id = $(`#ej-submit-tabs input[name="prob_id"]`).val();
     const lang_id = $(`#ej-submit-tabs input[name="lang_id"]`).val();
+    let selectHtml = "";
+    if (hasSelect)
+        selectHtml = `<div class="input-field"><select name="lang_id">
+                      ${$(`select[name="lang_id"]`).first().html()}</select><label>Язык</label></div>`;
     return $(`<div class="card" style="width: 100%">
         <div>
             <ul class="tabs">
@@ -124,8 +139,9 @@ function createSubmitArea() {
         </div>
         <div id="tab-submit" style="padding: 16px">
             <p>Отправить (${displayLanguage})</p>
-            <form method="POST" enctype="multipart/form-data" 
+            <form method="POST" enctype="multipart/form-data"
                 action="https://ejudge.algocourses.ru/cgi-bin/new-client">
+                
                 <input type="hidden" name="SID" value="${SID}">
                 <input type="hidden" name="prob_id" value="${prob_id}">
                 <input type="hidden" name="lang_id" value="${lang_id}">
@@ -139,7 +155,9 @@ function createSubmitArea() {
                         <input class="file-path validate" type="text">
                     </div>
                 </div>
+                ${selectHtml}
                 <input class="btn" type="submit" name="action_40" value="Отправить!"/>
+                
             </form>
         </div>
         <div id="tab-run" class="col s12" style="padding: 16px">
@@ -152,6 +170,18 @@ function createSubmitArea() {
 
 function createSolutionTable() {
     const table = $(`<table class="tj-styled-table"></table>`);
+    table.append(`<thead><tr>
+        <td>Номер</td>
+        <td>Время</td>
+        <td>Размер</td>
+        <td>Задача</td>
+        <td>Язык</td>
+        <td>Вердикт</td>
+        <td>Тест</td>
+        <td>Результат</td>
+        <td>Код</td>
+        <td>Протокол</td>
+    </tr></thead>`);
     $("#ej-main-submit-tab .table tbody").children("tr").each((i, item) => {
         const tr = $(`<tr></tr>`);
         $(item).children("td").each((j, cell) => {
@@ -171,6 +201,8 @@ function createProblemStatement() {
 
     const col1 = $("<div class='col sm12 l8 pr-4'></div>");
     col1.append(data.statement);
+    col1.append(`<hr>`);
+    col1.append(data.annotations);
     row1.append(col1);
 
     const col2 = $("<div class='col sm12 l4'></div>");
@@ -215,12 +247,15 @@ function replaceContestTaskPage() {
         $("#l12-col").remove();
         $("#l11").remove();
         $("#statusLine").addClass("hidden");
-        content.insertAfter(".server_status_on");
+        $("#l13").remove();
+        //content.insertAfter(".server_status_on");
+        $("#container").append(content);
         $('.tabs').tabs();
         CodeMirror.fromTextArea(document.getElementById("submitTextArea"), {
             lineNumbers: true,
             mode: "text/x-c++src"
         });
+        $('select').formSelect();
         hidePreloader();
     });
 }
@@ -643,8 +678,15 @@ function replaceProtocolPage() {
 
 function createSubmissionSource() {
     const card = $(`<div class="card" style="padding: 16px; overflow-x: scroll; width: 100%"></div>`);
-    card.append(`<h2>Исходный код решения</h2>`);
-    card.append($(".l14").children("pre").eq(0));
+    const text = $(".l14").children("pre").eq(0);
+    card.append(`<div style="display:flex; align-items: center; justify-content: space-between">
+        <h2 style="margin-right: 8px;">Исходный код решения</h2>
+        <button class="waves-effect waves-light btn" onclick="
+        navigator.clipboard.writeText($('code').eq(0).text());">
+        <i class="material-icons left">content_copy</i>Скопировать
+        </button>
+    </div>`);
+    card.append(text);
     return card;
 }
 
@@ -676,6 +718,52 @@ function replaceSubmissionSourcePage() {
         hidePreloader();
     });
 }
+
+function createMessageSource() {
+    const table = $(`<table class="tj-styled-table row"></table>`);
+    $(".l14 table tbody").eq(0).children("tr").each((i, item) => {
+        const tr = $(`<tr></tr>`);
+        $(item).children("td").each((j, cell) => {
+            tr.append(`<td>${$(cell).html()}</td>`)
+        });
+        table.append(tr);
+    })
+    const card = $(`<div class="card row" style="padding: 16px; overflow-x: scroll; width: 100%"></div>`);
+    const text = $(".l14").children("pre").eq(0);
+    card.append($(table));
+    card.append($(`<div class="row"><pre style="white-space: pre-wrap;">${text.html()}</pre></div>`));
+    return card;
+}
+
+async function createMessageSourcePage() {
+    const row = $("<div></div>");
+
+    const col1 = $("<div></div>");
+    col1.append(await createProblemSidenav());
+
+    const col2 = $("<div class='content-after-sidenav'></div>");
+
+    col2.append(createMessageSource());
+
+    row.append(col1);
+    row.append(col2);
+    return row;
+}
+
+function replaceMessageSourcePage() {
+    $("head").append(`
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    `);
+    createMessageSourcePage().then(content => {
+        $(".probNav").remove();
+        $("#l12-col").remove();
+        $("#l11").remove();
+        $("#l13").remove();
+        $("#main-cont").append(content);
+        hidePreloader();
+    });
+}
+
 
 function hidePreloader() {
     $(".big-f-preloader").remove();
@@ -752,6 +840,8 @@ $(document).ready(() => {
         replaceProtocolPage();
     else if (action == "36")
         replaceSubmissionSourcePage();
+    else if (action == "39")
+        replaceMessageSourcePage();
     else if ((action === undefined || action === null) &&
         (contest_id !== undefined && contest_id !== null))
         replaceLoginPage();
