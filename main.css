@@ -149,3 +149,10 @@ td.tj-standings-score {
     overflow-y: scroll;
     height: 300px!important;
 }
+
+
+.tj-inline-copy-btn {
+    font-size: 8px;
+    padding: 2px;
+    z-index: 100;
+}

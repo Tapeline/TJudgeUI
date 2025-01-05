@@ -256,6 +256,18 @@ function replaceContestTaskPage() {
             mode: "text/x-c++src"
         });
         $('select').formSelect();
+        for (let pre of document.getElementsByTagName("pre")) {
+            if ($(pre).hasClass("CodeMirror-line"))
+                continue;
+            const text = $(pre).text().replace("\"", "\\\"");
+            const onclicktext = ``
+            const btn = $(`<button class="tj-inline-copy-btn waves-effect waves-light btn-flat " style="margin-bottom: 4px;"><i class="material-icons">content_copy</i></button>`);
+            btn.click(() => {navigator.clipboard.writeText(text);});
+            console.log(pre);
+            $(pre).prepend($("<br>"));
+            $(pre).prepend(btn);
+            //pre.insertAdjacentElement("beforebegin", btn);
+        }
         hidePreloader();
     });
 }
